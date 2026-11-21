@@ -2,42 +2,54 @@
 
 Every colour is a plain RGB tuple. The poster uses a single mood:
 dusk over a turquoise sea, warm low sun, dark cliffs, one white lighthouse.
+(v4: deeper dusk top, warmer horizon, deeper sea.)
 """
 
 # Sky, top (darkest) to horizon (warmest).
-SKY_TOP = (28, 36, 80)
-SKY_MID1 = (90, 63, 125)
-SKY_MID2 = (182, 90, 114)
-SKY_LOW = (239, 154, 99)
-SKY_HORIZON = (247, 200, 115)
+SKY_TOP = (22, 28, 70)
+SKY_MID1 = (74, 50, 118)
+SKY_MID2 = (178, 84, 122)
+SKY_LOW = (233, 132, 96)
+SKY_GOLD = (247, 178, 105)
+SKY_HORIZON = (250, 202, 122)
 
 # Sun.
 SUN_CORE = (255, 237, 181)
+SUN_RIM = (255, 186, 92)
 SUN_GLOW = (255, 207, 125)
 
-# Clouds (drawn translucent).
+# Clouds (drawn translucent), with a warm-lit underside.
 CLOUD = (255, 217, 194)
+CLOUD_UNDER = (255, 190, 130)
 
 # Sea, horizon to bottom.
-SEA_TOP = (63, 154, 160)
-SEA_MID = (26, 106, 128)
-SEA_DEEP = (10, 42, 68)
+SEA_TOP = (72, 158, 160)
+SEA_MID = (34, 112, 132)
+SEA_LOW = (16, 70, 100)
+SEA_DEEP = (8, 34, 60)
 
 # Sun reflection on the sea.
 REFLECT = (255, 217, 138)
 WAVE = (127, 184, 196)
+FOAM = (214, 236, 238)
+
+# Far headland silhouette on the right horizon (drawn translucent).
+FAR_HEADLAND = (96, 74, 118)
 
 # Cliff, cottage, lighthouse.
 CLIFF = (30, 35, 64)
 CLIFF_RIM = (86, 100, 150)
+CLIFF_RIM_WARM = (255, 183, 110)
 STRATA = (44, 52, 84)
 COTTAGE = (36, 31, 56)
 COTTAGE_ROOF = (24, 21, 46)
 WINDOW = (255, 202, 106)
 LIGHTHOUSE_WHITE = (246, 241, 227)
 LIGHTHOUSE_BAND = (42, 51, 85)
+TOWER_SUN = (255, 214, 160)
 LAMP = (255, 215, 106)
 BEAM = (255, 214, 120)
+FLAG = (255, 118, 88)
 
 # Type: cream letters on the dark top sky, with a soft dark shadow.
 TEXT_CREAM = (255, 243, 214)
