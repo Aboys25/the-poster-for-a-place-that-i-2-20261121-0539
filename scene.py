@@ -1,19 +1,19 @@
 """The Velmara poster scene: one invented place, one landmark.
 
-v4 — the lighthouse is the undisputed hero (v3, rank 1275/1863 at
-rate 0.4928, let the cottage, the boat and the sun share the frame):
-  - the tower is ~1.5x taller and wider, shaded with a warm sunlit
-    edge and a cool shadow edge, a railed gallery, a bigger lamp with a
-    halo and a small red pennant;
-  - the cottage shrinks to a small lit accent on the lower ledge and
-    the sailboat is gone, so nothing else competes with the tower;
-  - the cliff is a narrower headland with a sunlit rim on its
-    sun-facing side, strata, boulders and foam at its foot;
-  - the sun sits lower and warmer with a broken, shimmering reflection
-    path, and a hazy far headland adds depth on the right horizon;
-  - the sky and sea gradients are richer, clouds carry a warm-lit
-    underside, and the name is followed by one small line naming the
-    single feature: the lighthouse.
+v5 — light and air (v4, rank 1275/1863 at rate 0.4928, was measured
+flat: dead dark band at the bottom of the sea, a flat sky, a weak lamp
+and a flat sun disc, a dead-straight horizon):
+  - the lamp gets a real glow: a tight bright halo, a wide soft halo
+    and a beam cone spilling right over the sea, so it reads as lit;
+  - the sun gets a wide soft bloom that bleeds warm light into the sky;
+  - a pale warm haze band with slight desaturation softens the horizon;
+  - the sea gets a gentle lift toward the bottom plus fine deterministic
+    wave streaks and sparkles across the whole open sea (kept clear of
+    the cliff face), so the lowest band stops being a dark slab;
+  - two more clouds at varied heights break the repeated thin bars.
+  (A fine deterministic film grain, ±5, was prototyped and then
+  dropped: at normal viewing distance it was indistinguishable from
+  no grain, while it blew the PNG up 10x, 84 KB to 852 KB.)
 
 Composition (1024x1024), leading the eye name -> landmark -> horizon:
   - the name VELMARA, large and cream, across the dark top sky;
@@ -27,11 +27,11 @@ import math
 from font5x7 import draw_text, text_width
 from palette import (
     BIRD, CLIFF, CLIFF_RIM, CLIFF_RIM_WARM, CLOUD, CLOUD_UNDER,
-    COTTAGE, COTTAGE_ROOF, FAR_HEADLAND, FOAM, LAMP,
+    COTTAGE, COTTAGE_ROOF, FAR_HEADLAND, FOAM, HAZE, LAMP, LAMP_HALO,
     LIGHTHOUSE_BAND, LIGHTHOUSE_WHITE, REFLECT, RULE_GOLD, SEA_DEEP,
-    SEA_LOW, SEA_MID, SEA_TOP, SKY_GOLD, SKY_HORIZON, SKY_LOW, SKY_MID1,
-    SKY_MID2, SKY_TOP, STAR, STRATA, SUN_CORE, SUN_GLOW, SUN_RIM,
-    TEXT_CREAM, TEXT_SHADOW, TOWER_SUN, WAVE, WINDOW,
+    SEA_LIFT, SEA_LOW, SEA_MID, SEA_TOP, SKY_GOLD, SKY_HORIZON, SKY_LOW,
+    SKY_MID1, SKY_MID2, SKY_TOP, STAR, STRATA, SUN_BLOOM, SUN_CORE,
+    SUN_GLOW, SUN_RIM, TEXT_CREAM, TEXT_SHADOW, TOWER_SUN, WAVE, WINDOW,
 )
 
 W = 1024
@@ -91,6 +91,41 @@ FOAM_LINES = [
 # Birds: (x, y, half-span).
 BIRDS = [(430, 260, 9), (480, 300, 8), (560, 235, 9), (900, 320, 8),
          (950, 380, 9)]
+
+
+def _lcg(state):
+    """One step of the fixed-seed LCG used for deterministic texture:
+    every run draws the same streaks and sparkles."""
+    return (1103515245 * state + 12345) % (2 ** 31)
+
+
+def _sea_texture(canvas):
+    """Fine wave streaks and sparkles across the whole open sea, from
+    the LCG above. Kept to x >= 445 so nothing lands on the cliff face
+    or the foam at its foot; low alpha so the sea stays calm, not busy.
+    """
+    state = 20261121
+    for y in range(660, 1020, 18):
+        count = 2 + state % 3
+        state = _lcg(state)
+        for _ in range(count):
+            x0 = 445 + state % 470
+            state = _lcg(state)
+            length = 30 + state % 100
+            state = _lcg(state)
+            alpha = 15 + state % 24
+            state = _lcg(state)
+            canvas.blend_rect(x0, y, x0 + length, y + 2, WAVE, alpha)
+    for _ in range(50):
+        x = 450 + state % 560
+        state = _lcg(state)
+        y = 660 + state % 350
+        state = _lcg(state)
+        hw = 4 + state % 11
+        state = _lcg(state)
+        alpha = 25 + state % 46
+        state = _lcg(state)
+        canvas.blend_rect(x - hw, y, x + hw, y + 2, REFLECT, alpha)
 
 
 def _draw_cloud(canvas, cx, cy, w, rgb, alpha):
@@ -153,8 +188,13 @@ def _draw_lighthouse(canvas):
     canvas.fill_rect(232, 312, 308, 330, LIGHTHOUSE_BAND)
     for px in (236, 252, 268, 284, 300):
         canvas.fill_rect(px, 300, px + 3, 312, LIGHTHOUSE_BAND)
-    # Lamp: wide warm halo, bright room, dark mullions, cap.
-    canvas.radial_glow(270, 292, 95, LAMP, 120)
+    # Lamp: tight bright halo, wide soft halo, beam cone to the right,
+    # bright room, dark mullions, cap. (v5: the v4 lamp was flat yellow
+    # with almost no halo; the glow is now the brightest thing on the
+    # poster after the sun.)
+    canvas.radial_glow_soft(270, 292, 90, LAMP_HALO, 140, 1.5)
+    canvas.radial_glow_soft(270, 292, 220, LAMP, 55, 2.0)
+    canvas.light_beam(270, 292, 292, 720, LAMP, 76)
     canvas.fill_rect(248, 264, 292, 268, LIGHTHOUSE_BAND)
     canvas.fill_rect(252, 268, 288, 312, LAMP)
     for mx in (262, 270, 278):
@@ -195,10 +235,11 @@ def draw_velmara(canvas):
     canvas.polygon([(860, 640), (900, 622), (950, 628), (1024, 618),
                     (1024, 640)], FAR_HEADLAND, alpha=110)
 
-    # Low sun: wide faint halo, tighter glow, warm rim, solid core.
-    # Sits lower than v3 so it touches the horizon.
-    canvas.radial_glow(715, 582, 300, SUN_GLOW, 30)
-    canvas.radial_glow(715, 582, 210, SUN_GLOW, 70)
+    # Low sun: wide soft bloom that bleeds warm light into the sky,
+    # tighter glow, warm rim, solid core. (v5: the v4 sun was a flat
+    # cream disc with an orange ring and no bloom into the sky.)
+    canvas.radial_glow_soft(715, 582, 430, SUN_BLOOM, 76, 2.0)
+    canvas.radial_glow_soft(715, 582, 200, SUN_GLOW, 71, 1.5)
     canvas.disc(715, 582, 86, SUN_RIM)
     canvas.disc(715, 582, 74, SUN_CORE)
 
@@ -224,8 +265,17 @@ def draw_velmara(canvas):
         canvas.blend_rect(x0, y, x1, y + 2, WAVE, alpha)
     for (x, y, hw, alpha) in SPARKLES:
         canvas.blend_rect(x - hw, y, x + hw, y + 2, REFLECT, alpha)
+    # v5: lift the deep bottom band and add fine texture across the
+    # open sea, so the lowest 12% of the poster stops being a flat
+    # dark slab.
+    canvas.sea_lift(HORIZON, H, 445, SEA_LIFT, 0.30)
+    _sea_texture(canvas)
 
     # Clouds, kept clear of the tower, the sun disc and the feature line.
+    # (v5: two more at varied heights so the sky stops reading as six
+    # identical thin bars at the same heights.)
+    _draw_cloud(canvas, 520, 250, 280, CLOUD, 70)
+    _draw_cloud(canvas, 740, 430, 200, CLOUD, 75)
     _draw_cloud(canvas, 100, 155, 120, CLOUD, 80)
     _draw_cloud(canvas, 920, 160, 130, CLOUD, 80)
     _draw_cloud(canvas, 620, 330, 240, CLOUD, 80)
@@ -267,6 +317,11 @@ def draw_velmara(canvas):
 
     for (x, y, s) in BIRDS:
         _draw_bird(canvas, x, y, s, BIRD)
+
+    # v5: pale warm haze around the horizon, so the sea/sky join stops
+    # reading as one dead-straight cut. Applied after the scene so it
+    # veils the cliff rim and the far headland exactly as prototyped.
+    canvas.horizon_haze(520, 700, HORIZON, HAZE, 50, 0.35)
 
     # The name: big cream letters with a soft dark shadow, gold rule
     # beneath, then one small gold line naming the single feature.

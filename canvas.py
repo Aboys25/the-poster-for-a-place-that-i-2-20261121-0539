@@ -101,6 +101,76 @@ class Canvas:
                 if a > 0:
                     self.blend_pixel(x, y, rgb, a)
 
+    def radial_glow_soft(self, cx, cy, r, rgb, peak_alpha, power=2.0):
+        """Soft radial glow: alpha falls as (1 - d/r) ** power, so the
+        halo melts into the sky instead of ending in a visible ring."""
+        for y in range(max(0, cy - r), min(self.height, cy + r + 1)):
+            dy = y - cy
+            dd = r * r - dy * dy
+            if dd < 0:
+                continue
+            dx = int(math.isqrt(dd))
+            for x in range(max(0, cx - dx), min(self.width, cx + dx + 1)):
+                d = math.sqrt((x - cx) * (x - cx) + dy * dy)
+                a = int(peak_alpha * (1.0 - d / r) ** power)
+                if a > 0:
+                    self.blend_pixel(x, y, rgb, a)
+
+    def light_beam(self, cx, cy, x0, x1, rgb, peak_alpha):
+        """Soft horizontal beam cone from the lamp toward +x: it widens
+        with distance from the lamp and fades out, like lamplight
+        spilling over the sea (no hard edges)."""
+        for y in range(max(0, cy - 70), min(self.height, cy + 70)):
+            dy = abs(y - cy)
+            half = 14 + dy * 0.55
+            if dy > half:
+                continue
+            edge = 1.0 - dy / half
+            for x in range(max(0, x0), min(self.width, x1)):
+                fx = (x - x0) / max(1, x1 - x0)
+                a = int(peak_alpha * (1.0 - fx) * edge)
+                if a > 0:
+                    self.blend_pixel(x, y, rgb, a)
+
+    def horizon_haze(self, y0, y1, horizon_y, rgb, peak_alpha, desat):
+        """Pale warm veil over a band around the horizon: alpha peaks at
+        the horizon line and falls to zero at the band edges, and the
+        colours inside the band are pulled slightly toward grey, so the
+        horizon stops reading as one dead-straight cut."""
+        for y in range(max(0, y0), min(self.height, y1)):
+            a = peak_alpha * max(0.0, 1.0 - abs(y - horizon_y) / 120.0)
+            if a <= 0:
+                continue
+            for x in range(self.width):
+                o = self._off(x, y)
+                r0, g0, b0 = self.buf[o], self.buf[o + 1], self.buf[o + 2]
+                lum = (r0 + g0 + b0) // 3
+                r1 = int(r0 * (1 - a / 255.0) + rgb[0] * (a / 255.0))
+                g1 = int(g0 * (1 - a / 255.0) + rgb[1] * (a / 255.0))
+                b1 = int(b0 * (1 - a / 255.0) + rgb[2] * (a / 255.0))
+                d = desat * (a / 255.0)
+                self.buf[o] = int(r1 * (1 - d) + lum * d)
+                self.buf[o + 1] = int(g1 * (1 - d) + lum * d)
+                self.buf[o + 2] = int(b1 * (1 - d) + lum * d)
+
+    def sea_lift(self, y0, y1, x0, rgb, peak):
+        """Gently lift the deep sea toward a lighter teal, growing
+        quadratically toward the bottom so the lowest band of the
+        poster stops being a flat dark slab. Only x >= x0 (open sea,
+        clear of the cliff face and foam)."""
+        for y in range(max(0, y0), min(self.height, y1)):
+            t = (y - y0) / max(1, y1 - y0)
+            a = peak * t * t
+            if a <= 0:
+                continue
+            for x in range(max(0, x0), self.width):
+                o = self._off(x, y)
+                self.buf[o] = int(self.buf[o] * (1 - a) + rgb[0] * a)
+                self.buf[o + 1] = int(self.buf[o + 1] * (1 - a)
+                                     + rgb[1] * a)
+                self.buf[o + 2] = int(self.buf[o + 2] * (1 - a)
+                                     + rgb[2] * a)
+
     def polygon(self, points, rgb, alpha=255):
         """Scanline-filled polygon (even-odd, pairs of crossings)."""
         if not points:

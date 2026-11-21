@@ -17,6 +17,13 @@ SKY_HORIZON = (250, 202, 122)
 SUN_CORE = (255, 237, 181)
 SUN_RIM = (255, 186, 92)
 SUN_GLOW = (255, 207, 125)
+SUN_BLOOM = (255, 198, 118)
+
+# Horizon haze: pale warm veil that softens the dead-straight horizon.
+HAZE = (252, 208, 158)
+
+# Sea lift: slightly lighter teal that keeps the deep bottom band alive.
+SEA_LIFT = (26, 84, 118)
 
 # Clouds (drawn translucent), with a warm-lit underside.
 CLOUD = (255, 217, 194)
@@ -48,6 +55,7 @@ LIGHTHOUSE_WHITE = (246, 241, 227)
 LIGHTHOUSE_BAND = (42, 51, 85)
 TOWER_SUN = (255, 214, 160)
 LAMP = (255, 215, 106)
+LAMP_HALO = (255, 222, 130)
 BEAM = (255, 214, 120)
 FLAG = (255, 118, 88)
 
