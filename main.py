@@ -6,6 +6,9 @@ MAKEFUN_OUTPUT_DIR when set (local runs), defaulting to /output.
 """
 
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from build import build_poster_png
 
